@@ -2,17 +2,39 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 )
 
 func main() {
-	// os.Args[0] = program name
-	// os.Args[1] = first argument
 	if len(os.Args) < 2 {
 		fmt.Println("No input provided")
 		return
 	}
 
-	input := os.Args[1]
-	fmt.Println("Received input:", input)
+	name := os.Args[1]
+
+	// Read API key from environment
+	apiKey := os.Getenv("API_KEY")
+	if apiKey == "" {
+		fmt.Println("Missing API_KEY")
+		return
+	}
+
+	url := fmt.Sprintf("https://api.agify.io?name=%s&apikey=%s", name, apiKey)
+
+	fmt.Println("Calling API:", url)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Println("Error calling API:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+
+	fmt.Println("API Response:")
+	fmt.Println(string(body))
 }
